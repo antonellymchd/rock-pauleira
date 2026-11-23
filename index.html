@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rock Pauleira">
+<meta name="theme-color" content="#0b0714">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Rock Pauleira</title>
+<style>
+:root{
+  --bg:#0b0714; --panel:#171026; --panel2:#21173a; --line:#33265a;
+  --text:#efe9ff; --muted:#a99bd0; --accent:#ff4fd8; --accent2:#22d3ee; --ok:#a3e635; --bad:#ff5a5a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:linear-gradient(135deg,var(--accent),#7a5cff);border:0;font-weight:700}
+button.small{padding:3px 9px;font-size:13px}
+input,select{background:#0f0a1c;border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+input[type=number]{width:72px}
+.screen{display:none;max-width:980px;margin:0 auto;padding:24px 16px 60px}
+.screen.active{display:block}
+h1{font-size:44px;margin:10px 0 4px;letter-spacing:-1px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{margin:6px 0 14px}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.pl{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer}
+.pl:hover{border-color:var(--accent)}
+.pl img,.pl .ph{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:var(--panel2);display:block}
+.pl b{display:block;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button.on{border-color:var(--accent);background:#2c1840}
+.song{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--line)}
+.song:last-child{border-bottom:0}
+.song .n{width:26px;text-align:right;color:var(--muted)}
+.song img{width:38px;height:38px;border-radius:6px}
+.song .t{flex:1;min-width:0}
+.song .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{font-size:11px;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.tag.local{border-color:var(--ok);color:var(--ok)}
+.tag.sp{border-color:#1ed760;color:#1ed760}
+.tag.bis{border-color:var(--accent);color:var(--accent)}
+.tag.no{border-color:var(--bad);color:var(--bad)}
+code{background:#0f0a1c;padding:1px 6px;border-radius:5px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2c1840;border:1px solid var(--accent);padding:10px 16px;border-radius:10px;opacity:0;transition:.3s;pointer-events:none;z-index:99;max-width:90vw}
+#toast.on{opacity:1}
+/* jogo */
+#scr-game{max-width:none;padding:0;position:fixed;inset:0;background:#000}
+#cv{position:absolute;inset:0;width:100%;height:100%}
+.hud{position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;pointer-events:none;text-shadow:0 2px 6px #000}
+.hud .score{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums}
+.hud .mult{font-size:22px;font-weight:800;color:var(--accent2)}
+.meter{width:200px;height:12px;border-radius:6px;background:#222;overflow:hidden;border:1px solid #444;margin-top:6px}
+.meter i{display:block;height:100%;width:50%;transition:width .15s}
+.energy i{background:linear-gradient(90deg,#7a5cff,var(--accent))}
+.overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,2,12,.78);text-align:center;padding:16px}
+.overlay.on{display:flex}
+.overlay .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 28px;max-width:520px;width:100%}
+.big{font-size:40px;font-weight:800;margin:4px 0}
+.stars{font-size:30px;color:#fbbf24;letter-spacing:3px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.progress{position:absolute;left:0;right:0;bottom:0;height:4px;background:#111}
+.progress i{display:block;height:100%;width:0;background:var(--accent2)}
+body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+.screen{padding-top:max(24px,env(safe-area-inset-top));padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+#scr-game{height:100dvh;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.hud{top:max(14px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right))}
+.tbtn{position:absolute;z-index:5;background:rgba(23,16,38,.75);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-weight:700;touch-action:manipulation}
+#tPause{top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%)}
+#tEuph{right:max(12px,env(safe-area-inset-right));bottom:calc(14% + 10px);display:none}
+#tEuph.ready{display:block;border-color:var(--accent);box-shadow:0 0 18px var(--accent)}
+.touch-only{display:none}
+@media (pointer:coarse){ .touch-only{display:inline} .kbd-only{display:none} }
+@media (max-width:600px){
+  h1{font-size:34px} .hud .score{font-size:24px} .hud .mult{font-size:17px}
+  .meter{width:110px} .hud{font-size:13px} .song img{display:none}
+  .song{flex-wrap:wrap} .song .t{flex-basis:calc(100% - 40px)}
+}
+.kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 7px;margin:0 2px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- INÍCIO -->
+<section id="scr-home" class="screen active">
+  <h1>Rock Pauleira</h1>
+  <p class="muted">Transforme suas playlists do Spotify em turnês e toque cada show nota por nota.</p>
+
+  <div class="card" id="loginCard">
+    <h2>Conectar ao Spotify</h2>
+    <p class="muted">Cole o <b>Client ID</b> do seu app em <a href="https://developer.spotify.com/dashboard" target="_blank" style="color:var(--accent2)">developer.spotify.com/dashboard</a>.
+      No app, cadastre como Redirect URI exatamente: <code id="redir"></code></p>
+    <div class="row">
+      <input id="clientId" placeholder="Client ID" style="flex:1;min-width:260px">
+      <button class="primary" id="btnLogin">Entrar com Spotify</button>
+    </div>
+  </div>
+  <p class="muted ios-note" style="display:none">No iPhone, as músicas do Spotify tocam pelo <b>app do Spotify</b> (Premium) enquanto você joga aqui. Antes de começar, abra o app do Spotify e dê play em qualquer música por um instante.</p>
+  <div class="card" id="loggedCard" style="display:none">
+    <div class="row"><span>Conectado como <b id="meName"></b></span>
+      <button class="primary" id="btnPlaylists">Minhas playlists</button>
+      <button id="btnLogout">Sair</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Sem Spotify? Use seus arquivos</h2>
+    <p class="muted">Escolha vários MP3/OGG/WAV (nome no formato <i>Artista - Música</i>). O jogo analisa o áudio e cria as notas no ritmo real da música.</p>
+    <label class="row"><input type="file" id="localOnly" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac" multiple></label>
+  </div>
+
+  <div class="card">
+    <h2>Configurações</h2>
+    <div class="row">
+      <label>Dificuldade
+        <select id="diff">
+          <option value="facil">Fácil (3 trastes)</option>
+          <option value="medio" selected>Médio (4 trastes)</option>
+          <option value="dificil">Difícil (5 trastes)</option>
+          <option value="expert">Expert (5 + acordes)</option>
+        </select></label>
+      <label>Atraso de áudio (ms) <input type="number" id="calib" step="5" value="0"></label>
+      <label><input type="checkbox" id="noFail"> Sem falha</label>
+    </div>
+    <p class="muted touch-only" style="margin-bottom:0">No celular: toque nas trilhas da parte de baixo da tela para tocar as notas · botão <b>EUFORIA</b> quando acender · botão <b>❚❚</b> pausa e ajusta a sincronia.</p>
+    <p class="muted kbd-only" style="margin-bottom:0">Teclas: <span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span><span class="kbd">F</span><span class="kbd">G</span> (ou 1–5) tocam as notas ·
+      <span class="kbd">Espaço</span> ativa a Euforia · <span class="kbd">←</span><span class="kbd">→</span> ajustam a sincronia durante a música · <span class="kbd">Esc</span> pausa</p>
+  </div>
+</section>
+
+<!-- PLAYLISTS -->
+<section id="scr-playlists" class="screen">
+  <div class="row"><button data-go="scr-home">← Voltar</button><h2 style="margin:0">Escolha uma playlist</h2></div>
+  <div id="plList" class="grid" style="margin-top:16px"></div>
+</section>
+
+<!-- SETLIST -->
+<section id="scr-setlist" class="screen">
+  <div class="row"><button id="btnBackSet">← Voltar</button><h2 style="margin:0" id="tourName">Turnê</h2></div>
+  <div class="card">
+    <div class="row">
+      <label>Shows <input type="number" id="nShows" min="1" max="20" value="3"></label>
+      <label>Duração por show (min) <input type="number" id="showMin" min="5" max="180" value="25"></label>
+      <label><input type="checkbox" id="keepOrder"> Manter ordem da playlist</label>
+      <button id="btnGen" class="primary">Montar turnê</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label>Áudio local (opcional, para notas sincronizadas): <input type="file" id="attachFiles" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac" multiple></label>
+    </div>
+  </div>
+  <div class="tabs" id="showTabs"></div>
+  <div class="card" id="showCard"></div>
+</section>
+
+<!-- JOGO -->
+<section id="scr-game" class="screen">
+  <canvas id="cv"></canvas>
+  <div class="hud">
+    <div>
+      <div id="hTitle" style="font-weight:700"></div>
+      <div class="muted" id="hSub"></div>
+      <div style="margin-top:8px;font-size:12px" class="muted">PLATEIA</div>
+      <div class="meter" id="crowd"><i></i></div>
+      <div style="margin-top:6px;font-size:12px" class="muted">EUFORIA</div>
+      <div class="meter energy" id="energy"><i></i></div>
+    </div>
+    <div style="text-align:right">
+      <div class="score" id="hScore">0</div>
+      <div class="mult" id="hMult">x1</div>
+      <div id="hCombo" class="muted">combo 0</div>
+      <div id="hOffset" class="muted" style="font-size:12px"></div>
+    </div>
+  </div>
+  <button class="tbtn" id="tPause" aria-label="Pausar">❚❚</button>
+  <button class="tbtn" id="tEuph">EUFORIA!</button>
+  <div class="progress"><i id="hProg"></i></div>
+  <div class="overlay" id="ovMsg"><div class="box" id="ovMsgBox"></div></div>
+</section>
+
+<!-- RESULTADO DO SHOW -->
+<section id="scr-final" class="screen">
+  <h1 id="fTitle">Fim do show!</h1>
+  <p class="muted" id="fSub"></p>
+  <div class="card"><table id="fTable"></table></div>
+  <div class="row"><button class="primary" id="btnBackTour">Voltar para a turnê</button></div>
+</section>
+
+<div id="toast"></div>
+
+<script>
+/* ============ utilidades ============ */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('ph_'+k); return v == null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem('ph_'+k, JSON.stringify(v)); }catch{} }
+};
+let toastT;
+function toast(msg, ms=3500){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), ms); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.id===id)); window.scrollTo(0,0); }
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDur = s => `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+function hash(str){ let h=2166136261; for(const c of str){ h^=c.charCodeAt(0); h=Math.imul(h,16777619);} return h>>>0; }
+function rng(seed){ let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function shuffle(arr, r){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+const norm = s => String(s||'').replace(/\s-\s.*(remaster|ao vivo|live|version|vers[aã]o|mix).*$/i,'')
+  .replace(/\(.*?\)|\[.*?\]/g,'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+
+/* ============ Spotify: login PKCE ============ */
+const REDIRECT = location.origin + location.pathname;
+const SCOPES = 'streaming user-read-email user-read-private playlist-read-private playlist-read-collaborative user-read-playback-state user-modify-playback-state';
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+
+async function login(){
+  const cid = $('#clientId').value.trim();
+  if(!cid) return toast('Informe o Client ID do seu app do Spotify.');
+  store.set('cid', cid);
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(64)));
+  store.set('verifier', verifier);
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  const p = new URLSearchParams({client_id:cid, response_type:'code', redirect_uri:REDIRECT,
+    code_challenge_method:'S256', code_challenge:challenge, scope:SCOPES});
+  location.href = 'https://accounts.spotify.com/authorize?' + p;
+}
+async function tokenRequest(params){
+  const r = await fetch('https://accounts.spotify.com/api/token', {method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(params)});
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.error_description || j.error || 'Falha no login');
+  const tok = {access:j.access_token, refresh:j.refresh_token || store.get('tok',{})?.refresh, exp:Date.now()+(j.expires_in-60)*1000};
+  store.set('tok', tok); return tok;
+}
+async function handleRedirect(){
+  const q = new URLSearchParams(location.search);
+  if(!q.has('code') && !q.has('error')) return;
+  history.replaceState({}, '', REDIRECT);
+  if(q.get('error')) return toast('Login cancelado: '+q.get('error'));
+  try{ await tokenRequest({client_id:store.get('cid'), grant_type:'authorization_code', code:q.get('code'),
+    redirect_uri:REDIRECT, code_verifier:store.get('verifier')}); }
+  catch(e){ toast('Erro no login: '+e.message); }
+}
+async function getToken(){
+  let t = store.get('tok'); if(!t) return null;
+  if(Date.now() > t.exp){
+    if(!t.refresh) return null;
+    try{ t = await tokenRequest({client_id:store.get('cid'), grant_type:'refresh_token', refresh_token:t.refresh}); }
+    catch{ store.set('tok', null); return null; }
+  }
+  return t.access;
+}
+async function api(path, opts={}){
+  const tok = await getToken();
+  if(!tok) throw Object.assign(new Error('Sessão expirada, entre novamente.'), {status:401});
+  const r = await fetch(path.startsWith('http') ? path : 'https://api.spotify.com/v1'+path,
+    {...opts, headers:{Authorization:'Bearer '+tok, 'Content-Type':'application/json', ...(opts.headers||{})}});
+  const txt = await r.text(); let j = null; try{ j = txt ? JSON.parse(txt) : null; }catch{}
+  if(!r.ok) throw Object.assign(new Error(j?.error?.message || ('HTTP '+r.status)), {status:r.status});
+  return j;
+}
+
+/* ============ Playlists e faixas ============ */
+let TRACKS = [], TOUR = null, CUR_SHOW = 0, PLAYLIST = null;
+
+async function loadPlaylists(){
+  show('scr-playlists');
+  const box = $('#plList'); box.innerHTML = '<p class="muted">Carregando…</p>';
+  try{
+    let url = '/me/playlists?limit=50', all = [];
+    while(url && all.length < 500){ const j = await api(url); all.push(...(j.items||[]).filter(Boolean)); url = j.next; }
+    if(!all.length){ box.innerHTML = '<p class="muted">Nenhuma playlist encontrada.</p>'; return; }
+    box.innerHTML = '';
+    for(const p of all){
+      const d = document.createElement('div'); d.className = 'pl';
+      const img = p.images?.[0]?.url;
+      const total = p.tracks?.total ?? p.items?.total ?? '';
+      d.innerHTML = (img ? `<img src="${esc(img)}" alt="">` : '<div class="ph"></div>') +
+        `<b>${esc(p.name)}</b><span class="muted">${total} músicas</span>`;
+      d.onclick = () => openPlaylist(p);
+      box.appendChild(d);
+    }
+  }catch(e){ box.innerHTML = `<p class="muted">Erro: ${esc(e.message)}</p>`; }
+}
+async function fetchAll(url){
+  const out = [];
+  while(url && out.length < 2000){ const j = await api(url); out.push(...(j.items||[])); url = j.next; }
+  return out;
+}
+async function openPlaylist(p){
+  toast('Carregando músicas…');
+  let items;
+  try{ items = await fetchAll(`/playlists/${p.id}/items?limit=100`); }
+  catch(e){
+    try{ items = await fetchAll(`/playlists/${p.id}/tracks?limit=100`); }
+    catch(e2){ return toast('Não consegui ler essa playlist: '+e2.message, 6000); }
+  }
+  TRACKS = items.map(it => it.track || it.item).filter(t => t && (t.type === 'track' || t.is_local)).map(t => ({
+    id: t.id || ('local:'+t.uri), uri: t.uri, name: t.name, artist: (t.artists||[]).map(a=>a.name).join(', '),
+    dur: (t.duration_ms||0)/1000, img: t.album?.images?.at(-1)?.url, isLocal: !!t.is_local,
+    bpm: store.get('bpm_'+t.id, 120), file: null
+  }));
+  if(!TRACKS.length) return toast('Essa playlist não tem músicas utilizáveis.');
+  PLAYLIST = p; $('#tourName').textContent = 'Turnê: ' + p.name;
+  generateTour(); show('scr-setlist');
+}
+
+/* ============ Arquivos locais ============ */
+function fileDuration(f){
+  return new Promise(res => {
+    const a = new Audio(); const url = URL.createObjectURL(f);
+    const done = d => { URL.revokeObjectURL(url); res(d); };
+    a.preload = 'metadata'; a.onloadedmetadata = () => done(isFinite(a.duration) ? a.duration : 180);
+    a.onerror = () => done(0); setTimeout(() => done(180), 5000); a.src = url;
+  });
+}
+async function useLocalOnly(files){
+  files = [...files]; if(!files.length) return;
+  toast('Lendo arquivos…');
+  TRACKS = [];
+  for(const f of files){
+    const base = f.name.replace(/\.[^.]+$/, '');
+    const [artist, ...rest] = base.split(' - ');
+    const dur = await fileDuration(f);
+    if(!dur) continue;
+    TRACKS.push({id:'file:'+f.name, uri:null, name:rest.length ? rest.join(' - ') : base, artist:rest.length ? artist : 'Arquivo local',
+      dur, img:null, isLocal:true, bpm:120, file:f});
+  }
+  if(!TRACKS.length) return toast('Nenhum arquivo de áudio válido.');
+  PLAYLIST = null; $('#tourName').textContent = 'Turnê: meus arquivos';
+  $('#showMin').value = Math.max(5, Math.min(25, Math.round(TRACKS.reduce((a,t)=>a+t.dur,0)/60)));
+  $('#nShows').value = 1;
+  generateTour(); show('scr-setlist');
+}
+function attachFiles(files){
+  let n = 0;
+  for(const t of TRACKS){
+    const tn = norm(t.name), an = norm(t.artist.split(',')[0]);
+    if(tn.length < 2) continue;
+    let best = null, bestScore = 0;
+    for(const f of files){
+      const fn = norm(f.name.replace(/\.[^.]+$/, ''));
+      if(!fn.includes(tn)) continue;
+      const sc = tn.length + (an && fn.includes(an) ? 100 : 0) - Math.abs(fn.length - tn.length - an.length)*0.1;
+      if(sc > bestScore){ bestScore = sc; best = f; }
+    }
+    if(best){ t.file = best; n++; }
+  }
+  toast(`${n} de ${TRACKS.length} músicas ligadas a arquivos locais.`);
+  renderShow();
+}
+
+/* ============ Montagem da turnê ============ */
+const VENUES = ['Garagem do Bairro','Bar da Esquina','Festival Universitário','Casa de Shows','Ginásio Municipal','Arena','Estádio Lotado'];
+const CITIES = ['São Paulo','Rio de Janeiro','Belo Horizonte','Porto Alegre','Recife','Salvador','Curitiba','Fortaleza','Brasília','Manaus','Belém','Florianópolis','Goiânia'];
+
+function generateTour(){
+  const nShows = Math.max(1, +$('#nShows').value || 1);
+  const minutes = Math.max(3, +$('#showMin').value || 25);
+  const r = rng(Date.now());
+  const pool = $('#keepOrder').checked ? [...TRACKS] : shuffle([...TRACKS], r);
+  const cities = shuffle([...CITIES], r);
+  const shows = [];
+  for(let i = 0; i < nShows && pool.length; i++){
+    const songs = []; let total = 0;
+    while(pool.length && (total < minutes*60 || songs.length < 1)){
+      const t = pool.shift(); songs.push(t); total += t.dur || 180;
+    }
+    const vi = nShows === 1 ? 3 : Math.round(i / Math.max(1, nShows-1) * (VENUES.length-1));
+    shows.push({venue: VENUES[vi], city: cities[i % cities.length], songs});
+  }
+  TOUR = {shows}; CUR_SHOW = 0;
+  if(pool.length) toast(`${pool.length} músicas ficaram de fora — aumente o número ou a duração dos shows.`);
+  renderShow();
+}
+function renderShow(){
+  const tabs = $('#showTabs'); tabs.innerHTML = '';
+  TOUR.shows.forEach((s, i) => {
+    const b = document.createElement('button'); b.className = i === CUR_SHOW ? 'on' : '';
+    b.textContent = `Show ${i+1} · ${s.city}`; b.onclick = () => { CUR_SHOW = i; renderShow(); };
+    tabs.appendChild(b);
+  });
+  const s = TOUR.shows[CUR_SHOW], card = $('#showCard');
+  if(!s){ card.innerHTML = '<p class="muted">Nenhum show.</p>'; return; }
+  const total = s.songs.reduce((a,t)=>a+(t.dur||0),0);
+  const hasSp = !!store.get('tok');
+  card.innerHTML = `<div class="row" style="justify-content:space-between">
+      <div><h2 style="margin:0">${esc(s.venue)} — ${esc(s.city)}</h2>
+      <span class="muted">${s.songs.length} músicas · ${fmtDur(total)}</span></div>
+      <button class="primary" id="btnPlayShow">▶ Tocar este show</button></div>
+    <div id="songList" style="margin-top:10px"></div>`;
+  const list = $('#songList');
+  s.songs.forEach((t, i) => {
+    const bis = i === s.songs.length - 1 && s.songs.length >= 3;
+    const src = t.file ? '<span class="tag local">áudio local · notas reais</span>'
+      : (!t.isLocal && hasSp) ? '<span class="tag sp">Spotify · notas por BPM</span>'
+      : '<span class="tag no">sem áudio</span>';
+    const best = store.get('best_'+t.id+'_'+$('#diff').value, null);
+    const row = document.createElement('div'); row.className = 'song';
+    row.innerHTML = `<span class="n">${i+1}</span>${t.img ? `<img src="${esc(t.img)}" alt="">` : ''}
+      <div class="t"><div><b>${esc(t.name)}</b> ${bis ? '<span class="tag bis">BIS</span>' : ''}</div>
+        <div class="muted">${esc(t.artist)} · ${fmtDur(t.dur)} ${best ? '· recorde '+best.toLocaleString('pt-BR') : ''}</div></div>
+      ${src}
+      ${!t.file && !t.isLocal ? `<label class="muted" title="Batidas por minuto da música">BPM <input type="number" min="40" max="240" value="${t.bpm}" data-bpm="${i}"></label>
+        <button class="small" data-tap="${i}" title="Toque no ritmo da música várias vezes">tap</button>` : ''}
+      <button class="small" data-up="${i}">↑</button><button class="small" data-down="${i}">↓</button><button class="small" data-del="${i}">✕</button>`;
+    list.appendChild(row);
+  });
+  list.onclick = e => {
+    const b = e.target.closest('button'); if(!b) return;
+    const d = b.dataset;
+    if(d.up != null && +d.up > 0){ const i=+d.up; [s.songs[i-1], s.songs[i]] = [s.songs[i], s.songs[i-1]]; renderShow(); }
+    else if(d.down != null && +d.down < s.songs.length-1){ const i=+d.down; [s.songs[i+1], s.songs[i]] = [s.songs[i], s.songs[i+1]]; renderShow(); }
+    else if(d.del != null){ s.songs.splice(+d.del, 1); renderShow(); }
+    else if(d.tap != null) tapTempo(s.songs[+d.tap], b);
+  };
+  list.onchange = e => {
+    const i = e.target.dataset.bpm; if(i == null) return;
+    const t = s.songs[+i]; t.bpm = Math.max(40, Math.min(240, +e.target.value || 120)); store.set('bpm_'+t.id, t.bpm);
+  };
+  $('#btnPlayShow').onclick = () => startShow(s);
+}
+let taps = [];
+function tapTempo(t, btn){
+  const now = performance.now();
+  if(taps.length && now - taps.at(-1) > 2000) taps = [];
+  taps.push(now);
+  if(taps.length >= 4){
+    const iv = (taps.at(-1) - taps[0]) / (taps.length - 1);
+    t.bpm = Math.round(60000 / iv); store.set('bpm_'+t.id, t.bpm);
+    const inp = btn.parentElement.querySelector('[data-bpm]'); if(inp) inp.value = t.bpm;
+    btn.textContent = t.bpm;
+  } else btn.textContent = 'tap ' + taps.length;
+}
+
+/* ============ Geração de notas ============ */
+const DIFF = {
+  facil:   {lanes:3, minGap:0.42, look:2.3, thr:1.7, step:1},
+  medio:   {lanes:4, minGap:0.26, look:1.9, thr:1.45, step:0.5},
+  dificil: {lanes:5, minGap:0.17, look:1.6, thr:1.3, step:0.5},
+  expert:  {lanes:5, minGap:0.11, look:1.35, thr:1.15, step:0.25, chords:true}
+};
+
+function fft(re, im){
+  const n = re.length;
+  for(let i=1, j=0; i<n; i++){ let bit = n>>1; for(; j & bit; bit >>= 1) j ^= bit; j ^= bit;
+    if(i < j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; } }
+  for(let len=2; len<=n; len<<=1){
+    const ang = -2*Math.PI/len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for(let i=0; i<n; i+=len){
+      let cr = 1, ci = 0;
+      for(let k=0; k<len/2; k++){
+        const a = i+k, b = a+len/2;
+        const xr = re[b]*cr - im[b]*ci, xi = re[b]*ci + im[b]*cr;
+        re[b] = re[a]-xr; im[b] = im[a]-xi; re[a] += xr; im[a] += xi;
+        const nr = cr*wr - ci*wi; ci = cr*wi + ci*wr; cr = nr;
+      }
+    }
+  }
+}
+// Detecta ataques (onsets) por fluxo espectral e distribui as notas nos trastes pelo "brilho" do som.
+function chartFromAudio(buffer, cfg){
+  const ds = buffer.sampleRate >= 44100 ? 2 : 1, sr = buffer.sampleRate / ds;
+  const chs = []; for(let c=0; c<buffer.numberOfChannels; c++) chs.push(buffer.getChannelData(c));
+  const len = Math.floor(buffer.length / ds), mono = new Float32Array(len);
+  for(let i=0; i<len; i++){ let s=0; for(const ch of chs) for(let k=0; k<ds; k++) s += ch[i*ds+k]; mono[i] = s/(chs.length*ds); }
+  const N = 1024, H = 512, half = N/2, win = new Float32Array(N);
+  for(let i=0;i<N;i++) win[i] = 0.5 - 0.5*Math.cos(2*Math.PI*i/N);
+  const frames = Math.max(0, Math.floor((len - N) / H));
+  const flux = new Float32Array(frames), cent = new Float32Array(frames);
+  const re = new Float32Array(N), im = new Float32Array(N); let prev = new Float32Array(half), cur = new Float32Array(half);
+  for(let f=0; f<frames; f++){
+    const o = f*H;
+    for(let i=0;i<N;i++){ re[i] = mono[o+i]*win[i]; im[i] = 0; }
+    fft(re, im);
+    let fl = 0, num = 0, den = 0;
+    for(let k=1; k<half; k++){
+      const m = Math.log1p(10*Math.hypot(re[k], im[k])); cur[k] = m;
+      const d = m - prev[k]; if(d > 0) fl += d;
+      num += k*m; den += m;
+    }
+    flux[f] = fl; cent[f] = den ? num/den : 0;
+    [prev, cur] = [cur, prev];
+  }
+  const W = 12, peaks = [], t2f = H / sr; let last = -9;
+  for(let f=1; f<frames-1; f++){
+    let s = 0, c = 0;
+    for(let k=Math.max(0,f-W); k<=Math.min(frames-1,f+W); k++){ s += flux[k]; c++; }
+    const thr = (s/c) * cfg.thr;
+    const t = f*t2f;
+    if(flux[f] > thr && flux[f] >= flux[f-1] && flux[f] >= flux[f+1] && t - last >= cfg.minGap && t > 1){
+      peaks.push({t, f, v:flux[f]}); last = t;
+    }
+  }
+  if(!peaks.length) return [];
+  // distribui por quantis do centróide → trastes equilibrados
+  const cs = peaks.map(p => cent[p.f]).sort((a,b)=>a-b);
+  const q = []; for(let i=1;i<cfg.lanes;i++) q.push(cs[Math.floor(i*cs.length/cfg.lanes)]);
+  const vs = peaks.map(p=>p.v).sort((a,b)=>a-b), strong = vs[Math.floor(vs.length*0.88)];
+  const notes = []; let prevLane = -1, rep = 0;
+  for(const p of peaks){
+    let lane = 0; while(lane < q.length && cent[p.f] > q[lane]) lane++;
+    if(lane === prevLane && ++rep > 3){ lane = (lane + (lane < cfg.lanes-1 ? 1 : -1)); rep = 0; } else if(lane !== prevLane) rep = 0;
+    prevLane = lane;
+    notes.push({t:p.t, lane});
+    if(cfg.chords && p.v >= strong) notes.push({t:p.t, lane: lane < cfg.lanes-2 ? lane+2 : lane-2});
+  }
+  return notes;
+}
+// Sem acesso ao áudio do Spotify: gera frases rítmicas no BPM informado, repetindo motivos como uma música de verdade.
+function chartFromBpm(track, cfg, dur){
+  const r = rng(hash(track.id + cfg.lanes)), beat = 60 / (track.bpm || 120), notes = [];
+  const barLen = beat*4, start = 2;
+  let motif = null, lane = Math.floor(cfg.lanes/2);
+  const makeMotif = () => {
+    const m = []; const steps = Math.round(8 / cfg.step); // 2 compassos
+    for(let s=0; s<steps; s++){
+      const onBeat = (s*cfg.step) % 1 === 0;
+      const p = onBeat ? 0.85 : (cfg.step === 0.25 ? 0.4 : 0.55);
+      if(r() < p){ lane = Math.max(0, Math.min(cfg.lanes-1, lane + Math.floor(r()*3)-1 + (r()<0.15 ? (r()<0.5?-2:2):0)));
+        m.push({o:s*cfg.step*beat, lane, chord: cfg.chords && onBeat && r() < 0.2}); }
+    }
+    return m;
+  };
+  for(let bar=0, t=start; t < dur - 3; bar += 2, t += barLen*2){
+    if(bar % 8 === 0 || !motif) motif = makeMotif();            // nova frase a cada 8 compassos
+    const variant = bar % 8 === 6;                                // última repetição varia
+    for(const n of motif){
+      const lane2 = variant ? (cfg.lanes-1-n.lane) : n.lane;
+      notes.push({t:t+n.o, lane:lane2});
+      if(n.chord) notes.push({t:t+n.o, lane: lane2 < cfg.lanes-2 ? lane2+2 : lane2-2});
+    }
+  }
+  return notes;
+}
+
+/* ============ Player do Spotify (Web Playback SDK, exige Premium) ============ */
+let spPlayer = null, spDevice = null, spState = {pos:0, at:0, paused:true, uri:null};
+function initSpotifyPlayer(){
+  if(spDevice) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const to = setTimeout(() => rej(new Error('Tempo esgotado ao conectar o player do Spotify.')), 15000);
+    const ok = () => { clearTimeout(to); res(); }, fail = e => { clearTimeout(to); rej(e); };
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      spPlayer = new Spotify.Player({name:'Rock Pauleira', getOAuthToken: cb => getToken().then(cb), volume:0.85});
+      spPlayer.addListener('ready', ({device_id}) => { spDevice = device_id; ok(); });
+      spPlayer.addListener('initialization_error', ({message}) => fail(new Error(message)));
+      spPlayer.addListener('authentication_error', ({message}) => fail(new Error('Autenticação: '+message)));
+      spPlayer.addListener('account_error', () => fail(new Error('É preciso Spotify Premium para tocar músicas pelo jogo.')));
+      spPlayer.addListener('player_state_changed', s => { if(s) spState = {pos:s.position/1000, at:performance.now(), paused:s.paused, uri:s.track_window?.current_track?.uri}; });
+      spPlayer.connect();
+    };
+    if(window.Spotify) window.onSpotifyWebPlaybackSDKReady();
+    else if(!$('#spsdk')){ const sc = document.createElement('script'); sc.id='spsdk'; sc.src='https://sdk.scdn.co/spotify-player.js'; document.head.appendChild(sc); }
+  });
+}
+// iPhone/iPad: o Web Playback SDK não roda no Safari móvel, então o jogo controla o app do Spotify (Spotify Connect).
+const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_TOUCH = matchMedia('(pointer:coarse)').matches;
+let spMode = null; // 'sdk' | 'connect'
+async function initSpotify(){
+  if(!IS_IOS){ await initSpotifyPlayer(); await spPlayer.activateElement?.(); spMode = 'sdk'; return; }
+  const devs = (await api('/me/player/devices'))?.devices || [];
+  const d = devs.find(d => d.is_active) || devs.find(d => d.type === 'Smartphone') || devs[0];
+  if(!d) throw new Error('Abra o app do Spotify neste aparelho, dê play em qualquer música por um instante e volte aqui.');
+  spDevice = d.id; spMode = 'connect';
+}
+async function spPoll(smooth){
+  const t0 = performance.now(), s = await api('/me/player'), t1 = performance.now();
+  if(!s || !s.item) return;
+  const st = {pos:s.progress_ms/1000, at:(t0+t1)/2, paused:!s.is_playing, uri:s.item.uri};
+  if(smooth && !st.paused && !spState.paused && st.uri === spState.uri){
+    const pred = spState.pos + (st.at - spState.at)/1000;
+    if(Math.abs(pred - st.pos) < 0.15) return; // evita "pulos" das notas por variação de rede
+  }
+  spState = st;
+}
+async function spPlay(uri){
+  await api(`/me/player/play?device_id=${spDevice}`, {method:'PUT', body:JSON.stringify({uris:[uri], position_ms:0})});
+  const t0 = performance.now();
+  while(performance.now() - t0 < 10000){
+    if(spMode === 'connect') await spPoll(false).catch(() => {});
+    if(spState.uri === uri && !spState.paused) return;
+    await new Promise(r => setTimeout(r, spMode === 'connect' ? 300 : 100));
+  }
+  throw new Error('O Spotify não começou a tocar a música.');
+}
+function spPause(){
+  if(spMode === 'sdk') return spPlayer?.pause();
+  spState = {...spState, pos: spState.pos + (spState.paused ? 0 : (performance.now() - spState.at)/1000), at: performance.now(), paused:true};
+  api(`/me/player/pause?device_id=${spDevice}`, {method:'PUT'}).catch(() => {});
+}
+async function spResume(){
+  if(spMode === 'sdk') return spPlayer.resume();
+  await api(`/me/player/play?device_id=${spDevice}`, {method:'PUT'}).catch(() => {});
+  for(let i = 0; i < 20 && spState.paused; i++){ await new Promise(r => setTimeout(r, 300)); await spPoll(false).catch(() => {}); }
+}
+
+/* ============ Jogo ============ */
+const LANE_COLORS = ['#ff4fd8','#7a5cff','#22d3ee','#a3e635','#fbbf24'];
+const KEYMAP = {a:0,s:1,d:2,f:3,g:4,'1':0,'2':1,'3':2,'4':3,'5':4};
+const WIN = 0.1, PERFECT = 0.045;
+let actx = null, G = null, SHOW = null, SHOW_RESULTS = [], wakeLock = null;
+try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch{} // toca mesmo com o iPhone no silencioso
+const cv = $('#cv'), cx = cv.getContext('2d');
+function resize(){ const d = devicePixelRatio || 1; cv.width = innerWidth*d; cv.height = innerHeight*d; cx.setTransform(d,0,0,d,0,0); }
+addEventListener('resize', resize);
+
+function overlay(html){ $('#ovMsgBox').innerHTML = html; $('#ovMsg').classList.toggle('on', !!html); }
+
+async function startShow(s){
+  if(!s.songs.length) return toast('Esse show está vazio.');
+  const needsSp = s.songs.some(t => !t.file && !t.isLocal);
+  actx = actx || new AudioContext(); await actx.resume();
+  SHOW = s; SHOW_RESULTS = [];
+  show('scr-game'); resize();
+  if(needsSp && store.get('tok')){
+    overlay('<div class="big">Conectando…</div><p class="muted">Ligando o player do Spotify</p>');
+    try{ await initSpotify(); }
+    catch(e){ overlay(`<div class="big">Ops</div><p>${esc(e.message)}</p><p class="muted">Músicas sem arquivo local serão puladas.</p><button class="primary" id="ovOk">Continuar</button>`);
+      await new Promise(r => $('#ovOk').onclick = r); spDevice = null; }
+  }
+  overlay(`<div class="muted">${esc(s.city)}</div><div class="big">${esc(s.venue)}</div><p>${s.songs.length} músicas no setlist</p><button class="primary" id="ovGo">Subir ao palco</button>`);
+  await new Promise(r => $('#ovGo').onclick = r);
+  playSong(0);
+}
+
+async function playSong(idx){
+  actx?.resume();
+  const t = SHOW.songs[idx];
+  if(!t) return finishShow();
+  try{ if(navigator.wakeLock && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); wakeLock?.addEventListener?.('release', () => wakeLock = null); }catch{}
+  const cfg = DIFF[$('#diff').value];
+  const isBis = idx === SHOW.songs.length-1 && SHOW.songs.length >= 3;
+  if(isBis){
+    overlay('<div class="big">A plateia pede BIS!</div><p class="muted">“Mais um! Mais um!”</p><button class="primary" id="ovGo">Voltar ao palco</button>');
+    await new Promise(r => $('#ovGo').onclick = r);
+  }
+  overlay(`<div class="muted">Música ${idx+1} de ${SHOW.songs.length}</div><div class="big" style="font-size:28px">${esc(t.name)}</div><p class="muted">${esc(t.artist)}</p><p>Preparando as notas…</p>`);
+  await new Promise(r => setTimeout(r, 50));
+  let notes, mode, dur, buffer = null;
+  try{
+    if(t.file){
+      buffer = await actx.decodeAudioData(await t.file.arrayBuffer());
+      notes = chartFromAudio(buffer, cfg); mode = 'local'; dur = buffer.duration;
+    } else if(!t.isLocal && spDevice){
+      dur = t.dur; notes = chartFromBpm(t, cfg, dur); mode = 'spotify';
+    } else {
+      toast(`“${t.name}” não tem áudio disponível — pulando.`);
+      SHOW_RESULTS.push({t, skipped:true}); return playSong(idx+1);
+    }
+  }catch(e){
+    toast('Erro preparando música: '+e.message, 6000);
+    SHOW_RESULTS.push({t, skipped:true}); return playSong(idx+1);
+  }
+  notes.sort((a,b)=>a.t-b.t);
+  G = {idx, t, cfg, notes, mode, dur, buffer, src:null, t0:0, score:0, combo:0, maxCombo:0, hits:0, perfect:0, misses:0,
+    meter:0.5, energy:0, euphoria:0, held:new Array(5).fill(false), flash:new Array(5).fill(0), pops:[], ended:false,
+    paused:false, failed:false, nudge:0, cursor:0, pauseAt:0};
+  $('#hTitle').textContent = t.name; $('#hSub').textContent = t.artist + (mode === 'spotify' ? ` · ${t.bpm} BPM` : '');
+  updateHud();
+  overlay('');
+  if(mode === 'local') startLocalAudio(0);
+  else{
+    try{ await spPlay(t.uri); }
+    catch(e){ toast(e.message, 6000); SHOW_RESULTS.push({t, skipped:true}); G = null; return playSong(idx+1); }
+  }
+  requestAnimationFrame(loop);
+}
+function startLocalAudio(offset){
+  G.src = actx.createBufferSource(); G.src.buffer = G.buffer; G.src.connect(actx.destination);
+  const lead = offset === 0 ? 2 : 0.05;
+  G.t0 = actx.currentTime + lead - offset;
+  G.src.start(actx.currentTime + lead, offset);
+}
+function songTime(){
+  if(!G) return 0;
+  let raw;
+  if(G.mode === 'local') raw = G.paused ? G.pauseAt : actx.currentTime - G.t0;
+  else raw = spState.paused ? spState.pos : spState.pos + (performance.now() - spState.at)/1000;
+  return raw - (+$('#calib').value || 0)/1000 - G.nudge;
+}
+let syncTick = 0;
+setInterval(() => {
+  if(!G || G.mode !== 'spotify' || G.paused || G.ended) return;
+  if(spMode === 'sdk' && spPlayer) spPlayer.getCurrentState().then(s => { if(s) spState = {pos:s.position/1000, at:performance.now(), paused:s.paused, uri:s.track_window?.current_track?.uri}; });
+  else if(spMode === 'connect' && ++syncTick % 2 === 0) spPoll(true).catch(() => {});
+}, 2000);
+
+function multiplier(){ return Math.min(4, 1 + Math.floor(G.combo/10)) * (G.euphoria > 0 ? 2 : 1); }
+function judgeHit(lane){
+  const t = songTime();
+  let best = null, bd = 1e9;
+  for(let i = G.cursor; i < G.notes.length; i++){
+    const n = G.notes[i];
+    if(n.t - t > WIN) break;
+    if(n.judged || n.lane !== lane) continue;
+    const d = Math.abs(n.t - t); if(d <= WIN && d < bd){ bd = d; best = n; }
+  }
+  if(best){
+    best.judged = 'hit'; G.hits++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo);
+    const perf = bd <= PERFECT; if(perf) G.perfect++;
+    G.score += (perf ? 60 : 40) * multiplier();
+    G.meter = Math.min(1, G.meter + 0.02);
+    if(G.combo % 20 === 0) G.energy = Math.min(1, G.energy + 0.25);
+    G.flash[lane] = 1; G.pops.push({lane, txt: perf ? 'PERFEITO' : 'BOA', life:1});
+  } else {
+    G.combo = 0; G.meter = Math.max(0, G.meter - 0.012);
+  }
+  updateHud();
+}
+function loop(){
+  if(!G || G.ended) return;
+  const t = songTime();
+  if(!G.paused){
+    for(let i = G.cursor; i < G.notes.length; i++){
+      const n = G.notes[i];
+      if(n.t > t - WIN) break;
+      if(!n.judged){ n.judged = 'miss'; G.misses++; G.combo = 0; G.meter = Math.max(0, G.meter - 0.045); updateHud(); }
+      G.cursor = i + 1;
+    }
+    if(G.euphoria > 0){ G.euphoria -= 1/60/8; if(G.euphoria <= 0){ G.euphoria = 0; } updateHud(); }
+    if(G.meter <= 0 && !$('#noFail').checked) return endSong(true);
+    if(t >= G.dur - (G.mode === 'spotify' ? 1 : 0) + 0.3) return endSong(false);
+  }
+  draw(t);
+  $('#hProg').style.width = Math.max(0, Math.min(100, t / G.dur * 100)) + '%';
+  requestAnimationFrame(loop);
+}
+function draw(t){
+  const W = innerWidth, Hh = innerHeight, L = G.cfg.lanes, look = G.cfg.look;
+  const g = cx.createLinearGradient(0,0,0,Hh); g.addColorStop(0,'#12061f'); g.addColorStop(1,'#000');
+  cx.fillStyle = g; cx.fillRect(0,0,W,Hh);
+  // luzes do palco
+  const pulse = G.euphoria > 0 ? 0.35 : 0.12;
+  for(let i=0;i<3;i++){ const x = W*(0.2+0.3*i) + Math.sin(t*0.7+i)*60;
+    const rg = cx.createRadialGradient(x,0,0,x,0,Hh*0.7); rg.addColorStop(0,`rgba(${i===1?'34,211,238':'255,79,216'},${pulse})`); rg.addColorStop(1,'rgba(0,0,0,0)');
+    cx.fillStyle = rg; cx.fillRect(0,0,W,Hh); }
+  const hitY = Hh*0.86, topY = Hh*0.12, nearW = Math.min(W*0.9, 120*L), farW = nearW*0.22, mid = W/2, K = 3, s0 = 1/(1+K);
+  const P = z => ((1/(1+Math.max(-0.2,z)*K)) - s0) / (1 - s0);
+  const Y = f => topY + (hitY - topY)*f, Wd = f => farW + (nearW - farW)*f;
+  const X = (lane, f) => mid + (lane - (L-1)/2) * Wd(f)/L;
+  G.geo = {mid, nearW, L};
+  // pista
+  cx.beginPath(); cx.moveTo(mid-farW/2, topY); cx.lineTo(mid+farW/2, topY); cx.lineTo(mid+nearW/2*1.06, Hh); cx.lineTo(mid-nearW/2*1.06, Hh); cx.closePath();
+  cx.fillStyle = G.euphoria > 0 ? 'rgba(122,92,255,.28)' : 'rgba(30,20,50,.85)'; cx.fill();
+  cx.strokeStyle = 'rgba(255,255,255,.12)'; cx.lineWidth = 1;
+  for(let i=0;i<=L;i++){ const l = i - 0.5; cx.beginPath(); cx.moveTo(X(l,0), topY); cx.lineTo(X(l,1.08), Y(1.08)); cx.stroke(); }
+  // linhas de tempo (a cada 0.5s)
+  for(let k=Math.ceil(t*2)/2; k<t+look; k+=0.5){ const f = P((k-t)/look); cx.strokeStyle='rgba(255,255,255,.05)'; cx.beginPath(); cx.moveTo(X(-0.5,f),Y(f)); cx.lineTo(X(L-0.5,f),Y(f)); cx.stroke(); }
+  // alvos
+  for(let l=0;l<L;l++){
+    const x = X(l,1), r = Wd(1)/L*0.36;
+    G.flash[l] = Math.max(0, G.flash[l] - 0.06);
+    cx.lineWidth = 4; cx.strokeStyle = LANE_COLORS[l];
+    cx.fillStyle = G.held[l] ? LANE_COLORS[l]+'aa' : 'rgba(0,0,0,.5)';
+    cx.beginPath(); cx.ellipse(x, hitY, r, r*0.42, 0, 0, Math.PI*2); cx.fill(); cx.stroke();
+    if(G.flash[l] > 0){ cx.fillStyle = `rgba(255,255,255,${G.flash[l]*0.6})`; cx.beginPath(); cx.ellipse(x, hitY, r*(1+G.flash[l]*0.6), r*0.42*(1+G.flash[l]*0.6), 0, 0, Math.PI*2); cx.fill(); }
+    cx.fillStyle = '#fff8'; cx.font = '600 13px system-ui'; cx.textAlign = 'center';
+    if(!IS_TOUCH) cx.fillText('ASDFG'[l], x, hitY + r*0.42 + 20);
+  }
+  // notas
+  for(let i = Math.max(0, G.cursor - 20); i < G.notes.length; i++){
+    const n = G.notes[i], z = (n.t - t)/look;
+    if(z > 1) break;
+    if(n.judged === 'hit' || z < -0.15) continue;
+    const f = P(z), x = X(n.lane, f), y = Y(f), r = Wd(f)/L*0.34;
+    cx.globalAlpha = n.judged === 'miss' ? 0.3 : Math.min(1, (1-z)*3);
+    cx.fillStyle = G.euphoria > 0 ? '#fff' : LANE_COLORS[n.lane];
+    cx.beginPath(); cx.ellipse(x, y, r, r*0.42, 0, 0, Math.PI*2); cx.fill();
+    cx.fillStyle = 'rgba(255,255,255,.75)'; cx.beginPath(); cx.ellipse(x, y - r*0.08, r*0.45, r*0.16, 0, 0, Math.PI*2); cx.fill();
+    cx.globalAlpha = 1;
+  }
+  // textos de acerto
+  G.pops = G.pops.filter(p => (p.life -= 0.03) > 0);
+  for(const p of G.pops){ cx.globalAlpha = p.life; cx.fillStyle = p.txt === 'PERFEITO' ? '#fbbf24' : '#fff';
+    cx.font = '800 16px system-ui'; cx.fillText(p.txt, X(p.lane,1), hitY - 40 - (1-p.life)*40); }
+  cx.globalAlpha = 1;
+  if(t < 0){ cx.fillStyle = '#fff'; cx.font = '800 64px system-ui'; cx.fillText(Math.ceil(-t), mid, Hh*0.45); }
+}
+function updateHud(){
+  if(!G) return;
+  $('#hScore').textContent = G.score.toLocaleString('pt-BR');
+  $('#hMult').textContent = 'x' + multiplier() + (G.euphoria > 0 ? ' EUFORIA!' : '');
+  $('#hCombo').textContent = 'combo ' + G.combo;
+  const m = $('#crowd i'); m.style.width = (G.meter*100)+'%';
+  m.style.background = G.meter < 0.3 ? 'var(--bad)' : G.meter < 0.6 ? '#fbbf24' : 'var(--ok)';
+  $('#energy i').style.width = ((G.euphoria > 0 ? G.euphoria : G.energy)*100)+'%';
+  $('#tEuph').classList.toggle('ready', G.energy >= 0.5 && G.euphoria <= 0);
+  $('#hOffset').textContent = G.nudge ? `sincronia ${G.nudge > 0 ? '+' : ''}${Math.round(G.nudge*1000)} ms` : '';
+}
+function stopAudio(){
+  if(!G) return;
+  if(G.mode === 'local'){ try{ G.src?.stop(); }catch{} }
+  else spPause();
+}
+function triggerEuphoria(){
+  if(G && !G.paused && G.energy >= 0.5 && G.euphoria <= 0){ G.euphoria = G.energy; G.energy = 0; updateHud(); }
+}
+function setPaused(p){
+  if(!G || G.ended || G.paused === p) return;
+  if(p){
+    G.pauseAt = songTime() + (+$('#calib').value||0)/1000 + G.nudge; G.paused = true; stopAudio();
+    overlay(`<div class="big">Pausado</div>
+      <p class="muted">Notas adiantadas ou atrasadas? Ajuste a sincronia:</p>
+      <div class="row" style="justify-content:center"><button id="pMinus">− 25 ms</button><b id="pNud">${Math.round(G.nudge*1000)} ms</b><button id="pPlus">+ 25 ms</button></div>
+      <div class="row" style="justify-content:center;margin-top:14px">
+      <button class="primary" id="pResume">Continuar</button><button id="pRestart">Reiniciar música</button><button id="pQuit">Sair do show</button></div>`);
+    $('#pResume').onclick = () => setPaused(false);
+    const nud = d => { G.nudge += d; $('#pNud').textContent = Math.round(G.nudge*1000) + ' ms'; updateHud(); };
+    $('#pMinus').onclick = () => nud(-0.025); $('#pPlus').onclick = () => nud(0.025);
+    $('#pRestart').onclick = () => { stopAudio(); const i = G.idx; G.ended = true; G = null; overlay(''); playSong(i); };
+    $('#pQuit').onclick = () => { stopAudio(); G.ended = true; G = null; overlay(''); show('scr-setlist'); renderShow(); };
+  } else {
+    overlay(''); G.paused = false;
+    if(G.mode === 'local') startLocalAudio(Math.max(0, G.pauseAt));
+    else spResume();
+  }
+}
+addEventListener('keydown', e => {
+  if(!G || G.ended || !$('#scr-game').classList.contains('active')) return;
+  if(e.key === 'Escape'){ setPaused(!G.paused); return; }
+  if(G.paused || e.repeat) return;
+  const k = e.key.toLowerCase();
+  if(k in KEYMAP){ const lane = KEYMAP[k]; if(lane < G.cfg.lanes){ G.held[lane] = true; judgeHit(lane); } e.preventDefault(); }
+  else if(e.key === ' '){ triggerEuphoria(); e.preventDefault(); }
+  else if(e.key === 'ArrowLeft'){ G.nudge -= 0.025; updateHud(); }
+  else if(e.key === 'ArrowRight'){ G.nudge += 0.025; updateHud(); }
+});
+addEventListener('keyup', e => { const k = e.key.toLowerCase(); if(G && k in KEYMAP) G.held[KEYMAP[k]] = false; });
+
+/* toque: a metade de baixo da tela é dividida nas trilhas; vários dedos ao mesmo tempo para acordes */
+const touchLane = new Map();
+function laneAt(x){
+  const g = G?.geo; if(!g) return -1;
+  const w = g.nearW / g.L, l = Math.floor((x - (g.mid - g.nearW/2)) / w);
+  return Math.max(0, Math.min(g.L-1, l));
+}
+const gameEl = $('#scr-game');
+gameEl.addEventListener('touchstart', e => {
+  if(e.target.closest('button')) return;
+  e.preventDefault();
+  if(!G || G.ended || G.paused) return;
+  for(const t of e.changedTouches){
+    if(t.clientY < innerHeight*0.4) continue;
+    const lane = laneAt(t.clientX); if(lane < 0) continue;
+    touchLane.set(t.identifier, lane); G.held[lane] = true; judgeHit(lane);
+  }
+}, {passive:false});
+const touchEnd = e => { for(const t of e.changedTouches){ const l = touchLane.get(t.identifier); touchLane.delete(t.identifier); if(G && l != null) G.held[l] = false; } };
+gameEl.addEventListener('touchend', touchEnd); gameEl.addEventListener('touchcancel', touchEnd);
+$('#tPause').onclick = () => { if(G && !G.ended) setPaused(!G.paused); };
+$('#tEuph').onclick = triggerEuphoria;
+// app em segundo plano (trocou de app, bloqueou a tela): pausa sozinho
+document.addEventListener('visibilitychange', () => { if(document.hidden && G && !G.ended && !G.paused && G.mode === 'local') setPaused(true); });
+
+function stars(acc){ return acc >= 0.97 ? 5 : acc >= 0.88 ? 4 : acc >= 0.75 ? 3 : acc >= 0.55 ? 2 : 1; }
+async function endSong(failed){
+  G.ended = true; stopAudio();
+  const total = G.notes.length || 1, acc = G.hits / total, st = failed ? 0 : stars(acc);
+  const key = 'best_'+G.t.id+'_'+$('#diff').value;
+  const rec = !failed && G.score > store.get(key, 0); if(rec) store.set(key, G.score);
+  const res = {t:G.t, score:G.score, acc, stars:st, maxCombo:G.maxCombo, failed};
+  const idx = G.idx;
+  overlay(`<div class="muted">${failed ? 'A plateia vaiou…' : 'Música concluída!'}</div>
+    <div class="big" style="font-size:26px">${esc(G.t.name)}</div>
+    <div class="stars">${'★'.repeat(st)}${'☆'.repeat(5-st)}</div>
+    <div class="big">${G.score.toLocaleString('pt-BR')}</div>${rec ? '<div style="color:var(--accent)">Novo recorde!</div>' : ''}
+    <p class="muted">${Math.round(acc*100)}% de acertos · ${G.perfect} perfeitos · maior combo ${G.maxCombo} · ${G.misses} erros</p>
+    <div class="row" style="justify-content:center">
+      <button id="rRetry">Repetir</button>
+      <button class="primary" id="rNext">${idx+1 < SHOW.songs.length ? 'Próxima música' : 'Encerrar show'}</button></div>`);
+  $('#rRetry').onclick = () => { overlay(''); G = null; playSong(idx); };
+  $('#rNext').onclick = () => { SHOW_RESULTS.push(res); overlay(''); G = null; playSong(idx+1); };
+}
+function finishShow(){
+  overlay(''); G = null;
+  const played = SHOW_RESULTS.filter(r => !r.skipped), total = played.reduce((a,r)=>a+r.score,0);
+  const avg = played.length ? played.reduce((a,r)=>a+r.stars,0)/played.length : 0;
+  $('#fTitle').textContent = avg >= 4 ? 'Show histórico!' : avg >= 3 ? 'Mandou bem!' : avg >= 2 ? 'Show razoável' : 'Noite difícil…';
+  $('#fSub').textContent = `${SHOW.venue} — ${SHOW.city} · pontuação total ${total.toLocaleString('pt-BR')}`;
+  $('#fTable').innerHTML = '<tr><th>#</th><th>Música</th><th class="r">Acertos</th><th class="r">Estrelas</th><th class="r">Pontos</th></tr>' +
+    SHOW_RESULTS.map((r,i) => `<tr><td>${i+1}</td><td>${esc(r.t.name)}<div class="muted">${esc(r.t.artist)}</div></td>` +
+      (r.skipped ? '<td class="r muted" colspan="3">pulada</td>' :
+      `<td class="r">${Math.round(r.acc*100)}%</td><td class="r" style="color:#fbbf24">${r.failed ? 'vaiado' : '★'.repeat(r.stars)}</td><td class="r">${r.score.toLocaleString('pt-BR')}</td>`) + '</tr>').join('');
+  show('scr-final');
+}
+
+/* ============ ligações da interface ============ */
+$('#redir').textContent = REDIRECT;
+$('#clientId').value = store.get('cid', '');
+$('#calib').value = store.get('calib', 0);
+$('#diff').value = store.get('diff', 'medio');
+$('#noFail').checked = store.get('noFail', false);
+$('#calib').onchange = e => store.set('calib', +e.target.value || 0);
+$('#diff').onchange = e => store.set('diff', e.target.value);
+$('#noFail').onchange = e => store.set('noFail', e.target.checked);
+$('#btnLogin').onclick = login;
+$('#btnLogout').onclick = () => { store.set('tok', null); refreshLogin(); };
+$('#btnPlaylists').onclick = loadPlaylists;
+$('#localOnly').onchange = e => useLocalOnly(e.target.files);
+$('#attachFiles').onchange = e => attachFiles([...e.target.files]);
+$('#btnGen').onclick = generateTour;
+$('#btnBackSet').onclick = () => show(PLAYLIST ? 'scr-playlists' : 'scr-home');
+$('#btnBackTour').onclick = () => { show('scr-setlist'); renderShow(); };
+
+async function refreshLogin(){
+  const logged = !!store.get('tok');
+  $('#loginCard').style.display = logged ? 'none' : '';
+  $('#loggedCard').style.display = logged ? '' : 'none';
+  if(logged){
+    try{ const me = await api('/me'); $('#meName').textContent = me.display_name || me.id;
+      if(me.product && me.product !== 'premium') toast('Sua conta não é Premium: use arquivos locais para tocar o áudio.', 7000); }
+    catch(e){ if(e.status === 401){ store.set('tok', null); refreshLogin(); } else $('#meName').textContent = '(erro: '+e.message+')'; }
+  }
+}
+handleRedirect().then(refreshLogin);
+if('serviceWorker' in navigator && isSecureContext) navigator.serviceWorker.register('sw.js').catch(() => {});
+if(IS_IOS) document.querySelectorAll('.ios-note').forEach(e => e.style.display = '');
+</script>
+</body>
+</html>
